@@ -9,39 +9,25 @@ export function ExpectedOutcomeBanner({
   onDismiss: () => void
 }) {
   return (
-    <div className="card p-4 flex flex-col sm:flex-row gap-3 sm:items-start animate-slide-up">
-      <div className="shrink-0 w-9 h-9 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M10 2.5L4 5v5c0 3.5 2.5 6.2 6 7.5 3.5-1.3 6-4 6-7.5V5l-6-2.5Z"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-          <path d="M7.5 10l2 2 3.5-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
+    <div className="surface p-3 mb-3 animate-slide-up flex items-start gap-3">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] uppercase font-semibold tracking-wider text-slate-500">
-            Loaded scenario
+          <span className="text-[10.5px] uppercase font-semibold tracking-wider text-slate-500">
+            Example loaded
           </span>
           <span className={`chip ${OUTCOME_TONE[scenario.outcome]}`}>
             {OUTCOME_LABEL[scenario.outcome]}
           </span>
-        </div>
-        <div className="text-sm font-semibold text-slate-900 mt-1">{scenario.title}</div>
-        <div className="text-[12px] text-slate-600 mt-1 leading-relaxed">
-          <span className="font-semibold text-slate-700">Expected:</span> {scenario.expected}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-1">
           {scenario.policyRefs.map((r) => (
-            <span key={r} className="policy-ref text-[10px]">{r}</span>
+            <span key={r} className="policy-ref">{r}</span>
           ))}
+        </div>
+        <div className="text-[12.5px] text-slate-700 mt-1.5 leading-relaxed">
+          <span className="font-medium text-slate-900">Expected:</span> {scenario.expected}
         </div>
       </div>
       <button onClick={onDismiss} className="btn-ghost" title="Dismiss">
-        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
           <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </button>

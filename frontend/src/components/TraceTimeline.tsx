@@ -9,12 +9,12 @@ const FILTERS: { key: FilterKey; label: string; matches: (e: TraceEvent) => bool
   { key: 'all', label: 'All', matches: () => true },
   {
     key: 'tool',
-    label: 'Tools only',
+    label: 'Tools',
     matches: (e) => ['tool_call', 'tool_result', 'tool_error'].includes(e.kind),
   },
   {
     key: 'llm',
-    label: 'LLM only',
+    label: 'LLM',
     matches: (e) => ['llm_request', 'llm_response'].includes(e.kind),
   },
   {
@@ -33,31 +33,30 @@ export function TraceTimeline({ events, loading }: { events: TraceEvent[]; loadi
 
   if (loading) {
     return (
-      <div className="card p-8 text-sm text-slate-400 italic flex items-center gap-2">
+      <div className="surface p-8 text-[13px] text-slate-400 flex items-center gap-2">
         <span className="typing-dot" />
         <span className="typing-dot" />
         <span className="typing-dot" />
-        loading trace…
+        Loading trace
       </div>
     )
   }
   if (events.length === 0) {
     return (
-      <div className="card p-10 text-center">
-        <div className="text-4xl">📭</div>
-        <div className="text-sm font-semibold text-slate-700 mt-2">No trace yet</div>
-        <div className="text-xs text-slate-500 mt-1">
-          Select a session on the left, or send a message from the Chat tab to populate.
+      <div className="surface p-10 text-center">
+        <div className="text-[13px] font-medium text-slate-700">No trace yet</div>
+        <div className="text-[12px] text-slate-500 mt-1 leading-relaxed">
+          Pick a session on the left, or send a message from Conversations to populate.
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <MetricsBar events={events} />
-      <div className="card p-3 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/70">
+      <div className="surface px-3 py-2 flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-0.5">
           {FILTERS.map((f) => {
             const count = events.filter(f.matches).length
             const active = filter === f.key
@@ -65,21 +64,25 @@ export function TraceTimeline({ events, loading }: { events: TraceEvent[]; loadi
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                  active ? 'bg-white shadow-soft text-slate-900' : 'text-slate-500 hover:text-slate-900'
+                className={`px-2.5 py-1 rounded-md text-[12px] font-medium transition ${
+                  active
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 {f.label}
-                <span className="ml-1.5 text-[10px] font-mono text-slate-400">{count}</span>
+                <span className={`ml-1.5 text-[10px] font-mono ${active ? 'text-slate-300' : 'text-slate-400'}`}>
+                  {count}
+                </span>
               </button>
             )
           })}
         </div>
-        <div className="text-[11px] text-slate-500 font-mono">
-          {visible.length} of {events.length} events
+        <div className="text-[10.5px] text-slate-500 font-mono">
+          {visible.length} of {events.length}
         </div>
       </div>
-      <div className="card pl-1 pr-3 py-2">
+      <div className="surface px-1 py-1">
         {visible.map((e) => (
           <TraceEventCard key={e.id} event={e} />
         ))}
