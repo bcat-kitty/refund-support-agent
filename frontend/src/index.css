@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f6f7fb;
+  --ink: #0f172a;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle ambient grid behind the app - gives depth without being noisy */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(at 4% -10%, rgba(124, 92, 255, 0.08) 0px, transparent 55%),
+    radial-gradient(at 96% -10%, rgba(168, 85, 247, 0.07) 0px, transparent 55%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Custom scrollbar (webkit) - slim, tidy */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.22);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+@layer components {
+  .card {
+    @apply bg-white border border-slate-200/70 rounded-2xl shadow-soft;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 text-[11px] font-medium font-mono px-2 py-0.5 rounded-md border;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white
+           bg-brand-gradient shadow-soft hover:shadow-glow active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed transition;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600
+           hover:bg-slate-100 hover:text-slate-900 transition;
+  }
+  .policy-ref {
+    @apply inline-flex items-baseline px-1.5 py-px rounded-md text-[12px] font-semibold font-mono
+           bg-brand-50 text-brand-700 border border-brand-200/70;
+  }
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+}
+
+/* Animated three-dot typing indicator */
+.typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: pulseDot 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0.32s; }
+
+@keyframes pulseDot {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.85); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* Markdown-ish output styling for assistant messages */
+.prose-msg p { @apply my-0; }
+.prose-msg p + p { @apply mt-2.5; }
+.prose-msg ul { @apply list-disc ml-5 my-1.5 space-y-1; }
+.prose-msg li { @apply pl-0.5; }
+.prose-msg strong { @apply font-semibold text-slate-900; }
+.prose-msg code {
+  @apply font-mono text-[12px] px-1.5 py-px rounded
+         bg-slate-100 text-slate-800 border border-slate-200;
+}
