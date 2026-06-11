@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { MarkdownLite } from '../lib/markdown'
+import { useElapsed } from '../lib/hooks'
+import { useToast } from '../lib/toast'
 import type { Message as MessageT, TurnMetrics } from '../types'
 
 function fmtMs(ms: number): string {
@@ -8,38 +10,46 @@ function fmtMs(ms: number): string {
 }
 
 function MetricsFooter({ m }: { m: TurnMetrics }) {
-  const parts: { label: string; value: string; tone?: 'amber' }[] = [
-    { label: m.tool_calls === 1 ? 'tool' : 'tools', value: String(m.tool_calls) },
-    ...(m.retries > 0 ? [{ label: 'retry', value: String(m.retries), tone: 'amber' as const }] : []),
-    { label: 'latency', value: fmtMs(m.latency_ms) },
-    { label: 'tokens', value: `${m.tokens_in + m.tokens_out}` },
-    { label: 'cost', value: `$${m.cost_usd.toFixed(4)}` },
-  ]
   return (
-    <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-wrap gap-2 text-[10.5px] text-slate-500">
-      {parts.map((p, i) => (
-        <span key={p.label} className="flex items-center gap-1">
-          {i > 0 && <span className="text-slate-300">-</span>}
-          <span className="text-slate-400">{p.label}</span>
-          <span className={`font-mono ${p.tone === 'amber' ? 'text-amber-700' : 'text-slate-700'}`}>
-            {p.value}
-          </span>
+    <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px] text-slate-500">
+      <span className="flex items-center gap-1">
+        <span className="text-slate-400">{m.tool_calls === 1 ? 'tool' : 'tools'}</span>
+        <span className="font-mono tnum text-slate-700">{m.tool_calls}</span>
+      </span>
+      {m.retries > 0 && (
+        <span className="flex items-center gap-1">
+          <span className="text-slate-400">retry</span>
+          <span className="font-mono tnum text-amber-700">{m.retries}</span>
         </span>
-      ))}
+      )}
+      <span className="flex items-center gap-1">
+        <span className="text-slate-400">latency</span>
+        <span className="font-mono tnum text-slate-700">{fmtMs(m.latency_ms)}</span>
+      </span>
+      <span className="flex items-center gap-1">
+        <span className="text-slate-400">tokens</span>
+        <span className="font-mono tnum text-slate-700">{(m.tokens_in + m.tokens_out).toLocaleString()}</span>
+      </span>
+      <span className="flex items-center gap-1">
+        <span className="text-slate-400">cost</span>
+        <span className="font-mono tnum text-slate-700">${m.cost_usd.toFixed(4)}</span>
+      </span>
     </div>
   )
 }
 
 function CopyButton({ text }: { text: string }) {
+  const toast = useToast()
   const [copied, setCopied] = useState(false)
   return (
     <button
       onClick={async () => {
         await navigator.clipboard.writeText(text)
         setCopied(true)
+        toast.push('Copied to clipboard', 'success')
         setTimeout(() => setCopied(false), 1400)
       }}
-      className="opacity-0 group-hover:opacity-100 transition text-[10.5px] text-slate-400 hover:text-slate-700 inline-flex items-center gap-1"
+      className="opacity-0 group-hover:opacity-100 transition-all duration-150 text-[10.5px] text-slate-400 hover:text-slate-700 inline-flex items-center gap-1"
     >
       {copied ? (
         <>
@@ -66,7 +76,7 @@ export function MessageBubble({ message }: { message: MessageT }) {
   if (isUser) {
     return (
       <div className="flex justify-end mb-5 animate-slide-up">
-        <div className="max-w-[78%] rounded-lg px-3.5 py-2.5 text-[14px] leading-relaxed bg-slate-900 text-white whitespace-pre-wrap">
+        <div className="max-w-[78%] rounded-2xl rounded-br-md px-3.5 py-2.5 text-[14px] leading-relaxed bg-ink text-white whitespace-pre-wrap shadow-soft">
           {message.content}
         </div>
       </div>
@@ -75,10 +85,11 @@ export function MessageBubble({ message }: { message: MessageT }) {
   return (
     <div className="flex justify-start mb-5 animate-slide-up group">
       <div className="max-w-[82%] w-full">
-        <div className="text-[11px] font-medium text-slate-500 mb-1.5 ml-0.5">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 mb-1.5 ml-0.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-500" />
           Refund Agent
         </div>
-        <div className="bg-white border border-slate-200 rounded-lg px-4 py-3 text-[14px] leading-relaxed text-slate-800">
+        <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-md px-4 py-3 text-[14px] leading-relaxed text-ink shadow-soft">
           <MarkdownLite text={message.content} />
           {message.metrics && <MetricsFooter m={message.metrics} />}
         </div>
@@ -90,22 +101,38 @@ export function MessageBubble({ message }: { message: MessageT }) {
   )
 }
 
-export function TypingBubble() {
+export function TypingBubble({ startedAt }: { startedAt: number | null }) {
+  const elapsed = useElapsed(startedAt)
+  const stage = stageFor(elapsed)
   return (
     <div className="flex justify-start mb-5 animate-fade-in">
       <div className="max-w-[82%]">
-        <div className="text-[11px] font-medium text-slate-500 mb-1.5 ml-0.5">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 mb-1.5 ml-0.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-500" />
           Refund Agent
         </div>
-        <div className="bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-500">
-          <span className="inline-flex items-center gap-1">
-            <span className="typing-dot" />
-            <span className="typing-dot" />
-            <span className="typing-dot" />
-            <span className="text-[12px] ml-2 text-slate-500">working on it</span>
-          </span>
+        <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-md px-4 py-3 text-slate-500 shadow-soft">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex items-center gap-1 text-slate-400">
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+            </span>
+            <span className="text-[12.5px] text-slate-600">{stage}</span>
+            <span className="text-[10.5px] font-mono tnum text-slate-400 ml-1">
+              {(elapsed / 1000).toFixed(1)}s
+            </span>
+          </div>
         </div>
       </div>
     </div>
   )
+}
+
+function stageFor(elapsedMs: number): string {
+  if (elapsedMs < 800) return 'Reading your message'
+  if (elapsedMs < 2500) return 'Looking up your account'
+  if (elapsedMs < 4500) return 'Checking the policy'
+  if (elapsedMs < 7000) return 'Verifying eligibility'
+  return 'Composing a response'
 }

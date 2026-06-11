@@ -5,9 +5,12 @@ import { ExpectedOutcomeBanner } from '../components/ExpectedOutcomeBanner'
 import { PersonaPill } from '../components/PersonaPill'
 import { ScenarioBrowser, ScenarioButton } from '../components/ScenarioCatalog'
 import type { Scenario } from '../data/scenarios'
+import { useKeyboardShortcut } from '../lib/hooks'
+import { useToast } from '../lib/toast'
 import type { Customer, Session } from '../types'
 
 export default function ChatPage() {
+  const toast = useToast()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [active, setActive] = useState<Customer | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -16,6 +19,11 @@ export default function ChatPage() {
   const [browserOpen, setBrowserOpen] = useState(false)
   const chatRef = useRef<ChatWindowHandle | null>(null)
   const pendingRef = useRef<{ sessionEmail: string; text: string } | null>(null)
+
+  useKeyboardShortcut('k', (e) => {
+    e.preventDefault()
+    setBrowserOpen((o) => !o)
+  })
 
   useEffect(() => {
     api
@@ -49,8 +57,14 @@ export default function ChatPage() {
     if (!active) return
     setSession(null)
     setActiveScenario(null)
-    api.startSession(active.email).then(setSession).catch((e) => setError(String(e)))
-  }, [active])
+    api
+      .startSession(active.email)
+      .then((s) => {
+        setSession(s)
+        toast.push(`New conversation with ${active.name}`, 'info')
+      })
+      .catch((e) => setError(String(e)))
+  }, [active, toast])
 
   const handlePickScenario = useCallback(
     (s: Scenario) => {
@@ -85,7 +99,7 @@ export default function ChatPage() {
       </div>
 
       {error && (
-        <div className="text-[12.5px] text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-3 py-2 mb-3">
+        <div className="text-[12.5px] text-rose-800 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-3">
           {error}
         </div>
       )}
@@ -106,9 +120,7 @@ export default function ChatPage() {
           onBrowseAll={() => setBrowserOpen(true)}
         />
       ) : (
-        <div className="surface p-10 flex items-center justify-center text-[13px] text-slate-400">
-          {active ? 'Starting session…' : 'Loading…'}
-        </div>
+        <SessionSkeleton />
       )}
 
       <ScenarioBrowser
@@ -116,6 +128,24 @@ export default function ChatPage() {
         onClose={() => setBrowserOpen(false)}
         onPick={handlePickScenario}
       />
+    </div>
+  )
+}
+
+function SessionSkeleton() {
+  return (
+    <div className="surface p-6 h-[640px] flex flex-col">
+      <div className="space-y-4 flex-1">
+        <div className="skeleton h-3 w-32" />
+        <div className="skeleton h-3 w-64" />
+        <div className="flex justify-end">
+          <div className="skeleton h-10 w-2/3 rounded-2xl" />
+        </div>
+        <div className="skeleton h-10 w-3/4 rounded-2xl" />
+      </div>
+      <div className="text-center text-[12px] text-slate-400 mt-4">
+        Starting your conversation
+      </div>
     </div>
   )
 }
